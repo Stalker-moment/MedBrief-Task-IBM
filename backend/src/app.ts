@@ -19,6 +19,9 @@ export function createApp(options: AppOptions = {}): Express {
   const app = express();
   const orchestrator = options.orchestrator || new OrchestratorService();
 
+  // Trust reverse proxy (Nginx, Cloudflare, Caddy) for X-Forwarded-For client IP
+  app.set('trust proxy', 1);
+
   // Security Headers
   app.use(
     helmet({

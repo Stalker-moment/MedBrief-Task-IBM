@@ -9,6 +9,9 @@ export const apiRateLimiter = rateLimit({
   max: 40,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: {
+    xForwardedForHeader: false,
+  },
   message: {
     error: {
       code: 'TOO_MANY_REQUESTS',

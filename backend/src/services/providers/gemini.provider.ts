@@ -54,17 +54,54 @@ export class GeminiProvider implements MedicalSummaryProvider {
       language: task.language,
     });
 
-    const callModel = async (sysPrompt: string, usrPrompt: string): Promise<string> => {
-      const response = await this.client!.models.generateContent({
-        model: this.modelName,
-        contents: usrPrompt,
-        config: {
-          systemInstruction: sysPrompt,
-          responseMimeType: 'application/json',
-        },
-      });
+    const candidateModels = [
+      this.modelName,
+      'gemini-3.6-flash',
+      'gemini-3.5-flash',
+    ].filter((m, idx, arr) => arr.indexOf(m) === idx);
 
-      return response.text || '';
+    let activeModel = this.modelName;
+
+    const callModel = async (sysPrompt: string, usrPrompt: string): Promise<string> => {
+      let lastError: unknown = null;
+      for (const candidate of candidateModels) {
+        try {
+          const response = await this.client!.models.generateContent({
+            model: candidate,
+            contents: usrPrompt,
+            config: {
+              systemInstruction: sysPrompt,
+              responseMimeType: 'application/json',
+            },
+          });
+          activeModel = candidate;
+          return response.text || '';
+        } catch (err: unknown) {
+          lastError = err;
+          const msg = err instanceof Error ? err.message : String(err);
+          const isDemandOrNotFound =
+            msg.includes('503') ||
+            msg.includes('demand') ||
+            msg.includes('UNAVAILABLE') ||
+            msg.includes('404') ||
+            msg.includes('NOT_FOUND');
+
+          if (isDemandOrNotFound && candidate !== candidateModels[candidateModels.length - 1]) {
+            const nextCandidate = candidateModels[candidateModels.indexOf(candidate) + 1];
+            SafeLogger.warn(
+              `Model ${candidate} overload / tidak tersedia (503/404). Mencoba fallback otomatis ke ${nextCandidate}...`,
+              {
+                provider: this.name,
+                failedModel: candidate,
+                fallbackModel: nextCandidate,
+              }
+            );
+            continue;
+          }
+          throw err;
+        }
+      }
+      throw lastError;
     };
 
     let rawText = '';
@@ -73,7 +110,7 @@ export class GeminiProvider implements MedicalSummaryProvider {
     } catch (error: unknown) {
       SafeLogger.error('Gemini generateContent error', error, {
         provider: this.name,
-        model: this.modelName,
+        model: activeModel,
       });
       throw error;
     }
@@ -83,7 +120,7 @@ export class GeminiProvider implements MedicalSummaryProvider {
     if (parsedResult.success) {
       return {
         provider: this.name,
-        model: this.modelName,
+        model: activeModel,
         latencyMs: Date.now() - startTime,
         result: parsedResult.data,
       };

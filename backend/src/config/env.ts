@@ -16,7 +16,7 @@ const EnvSchema = z.object({
   WEB_ORIGIN: z.string().default('http://localhost:3000'),
 
   GEMINI_API_KEY: z.string().optional().default(''),
-  GEMINI_MODEL: z.string().default('gemini-3.8-flash'),
+  GEMINI_MODEL: z.string().default('gemini-3.6-flash'),
 
   DEEPSEEK_API_KEY: z.string().optional().default(''),
   DEEPSEEK_MODEL: z.string().default('deepseek-v4-flash'),
@@ -26,7 +26,7 @@ const EnvSchema = z.object({
     .transform((val) => val === 'true' || val === '1')
     .default('false'),
 
-  AI_TIMEOUT_MS: z.coerce.number().default(30000),
+  AI_TIMEOUT_MS: z.coerce.number().default(60000),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;
