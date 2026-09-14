@@ -15,13 +15,17 @@
     "typecheck": "npm run typecheck --workspace=@medibrief/shared && npm run typecheck --workspace=backend && npm run typecheck --workspace=frontend",
     "lint": "npm run lint --workspace=frontend",
     "test": "npm run test --workspaces --if-present",
-    "test:coverage": "npm run test:coverage --workspace=backend"
+    "test:coverage": "npm run test:coverage --workspace=backend",
+    "install:backend": "npm install --workspace=backend --workspace=@medibrief/shared",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build:backend": "npm run build --workspace=@medibrief/shared && npm run build --workspace=backend",
+    "start:backend": "npm run start --workspace=backend"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
   },
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=20.10.0"
   },
   "license": "MIT"
 }

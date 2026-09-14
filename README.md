@@ -169,7 +169,7 @@ MedBrief-Task-IBM/
 
 ## ⚙️ Prasyarat & Persiapan Lingkungan
 
-- **Node.js**: Versi `>= 22.18.0` (diuji pada v24.19.0).
+- **Node.js**: Versi `>= 20.10.0` (didukung & diuji pada v20.10.0, v22.x, hingga v24.x).
 - **Package Manager**: Standar `npm` (atau `pnpm` bila diinginkan).
 
 ### Langkah Instalasi
@@ -178,6 +178,18 @@ Jalankan instalasi dependensi pada root:
 npm install
 ```
 Semua workspace (`packages/shared`, `backend`, dan `frontend`) akan terhubung secara otomatis.
+
+> [!TIP]
+> **Instalasi Khusus Backend di Server:**
+> Jika server Anda hanya digunakan untuk menjalankan layanan API (tanpa frontend), Anda cukup menjalankan:
+> ```bash
+> npm run install:backend
+> ```
+> atau langsung dari direktori `backend/`:
+> ```bash
+> cd backend
+> npm install
+> ```
 
 ---
 
@@ -414,13 +426,26 @@ Prompt MediBrief dibangun menggunakan 8 lapisan modular yang terisolasi dan dapa
 ## 🌐 Panduan Deployment Terpisah (API & Web)
 
 ### 1. Deployment Backend API (Express)
-- Pastikan lingkungan server mendukung Node.js 22+.
-- Set environment variables pada host (misal di Render, Fly.io, Railway, atau VPS):
+- Pastikan lingkungan server mendukung Node.js 20+ (`>= 20.10.0`).
+- Set environment variables pada host (misal di VPS, VM Windows, Linux, atau PaaS):
   `PORT=4000`, `NODE_ENV=production`, `WEB_ORIGIN=https://your-frontend-domain.com`, `GEMINI_API_KEY=...`, `DEEPSEEK_API_KEY=...`.
-- Perintah build & start:
+- Perintah instalasi & build backend mandiri:
   ```bash
-  npm run build --workspace=backend
-  npm run start --workspace=backend
+  # Instal dependensi backend & shared saja (tanpa frontend)
+  npm run install:backend
+
+  # Build kode TypeScript backend & shared
+  npm run build:backend
+
+  # Jalankan server Express (mode production)
+  npm run start:backend
+  ```
+- Atau jika ingin masuk ke direktori `backend/` secara langsung:
+  ```bash
+  cd backend
+  npm install
+  npm run build
+  npm run start
   ```
 
 ### 2. Deployment Frontend Web (Next.js)
@@ -438,10 +463,13 @@ Prompt MediBrief dibangun menggunakan 8 lapisan modular yang terisolasi dan dapa
 
 | Masalah / Gejala | Kemungkinan Penyebab | Solusi |
 | :--- | :--- | :--- |
+| **`npm error EISDIR: illegal operation on a directory, symlink '...backend' -> '...node_modules\backend'`** | Folder `node_modules` di-copy dari laptop/zip ke server sehingga link workspace berubah menjadi direktori fisik, ATAU drive `D:` diformat **exFAT/FAT32** yang tidak mendukung symlink. | 1. Hapus folder `node_modules` lama di server: `rmdir /s /q node_modules` (CMD) atau `Remove-Item -Recurse -Force node_modules` (PowerShell).<br/>2. Jika drive `D:` adalah exFAT, pindahkan folder proyek ke drive NTFS (`C:\`) atau jalankan instalasi mandiri dari direktori backend: `cd backend && npm install`. |
+| **`'tsx' is not recognized as an internal or external command`** | Perintah `npm install` gagal di tengah jalan (misal karena EISDIR di atas) sehingga paket `tsx` di `.bin` belum terpasang. | Jalankan pembersihan `node_modules` terlebih dahulu, kemudian jalankan `npm run install:backend` atau `cd backend && npm install`. |
+| **`EBADENGINE Unsupported engine`** | Versi Node.js di server di bawah Node 22 (misal Node 20.10.0) saat menginstal seluruh monorepo. | Gunakan `npm run install:backend` agar hanya menginstal backend (kompatibel penuh dengan Node 20.10.0+), atau abaikan peringatan engine karena Node 20 LTS sepenuhnya didukung. |
 | **Error 400: VALIDATION_ERROR** | Catatan medis kurang dari 20 karakter atau melebihi 20.000 karakter. | Pastikan panjang teks rekam medis antara 20–20.000 karakter. |
 | **Error 502: AI_PROVIDER_ERROR** | `GEMINI_API_KEY` atau `DEEPSEEK_API_KEY` belum terisi atau salah. | Periksa file `backend/.env` dan pastikan kunci API aktif. |
-| **CORS Blocked pada Browser** | Nilai `WEB_ORIGIN` di backend tidak sesuai dengan port/domain frontend. | Set `WEB_ORIGIN=http://localhost:3000` pada `backend/.env`. |
-| **Network Error pada Frontend** | Layanan backend Express belum berjalan di port 4000. | Jalankan `npm run dev` pada root untuk memulai kedua servis. |
+| **CORS Blocked pada Browser** | Nilai `WEB_ORIGIN` di backend tidak sesuai dengan port/domain frontend. | Set `WEB_ORIGIN=http://localhost:3000` (atau domain produksi frontend) pada `backend/.env`. |
+| **Network Error pada Frontend** | Layanan backend Express belum berjalan di port 4000. | Jalankan `npm run dev` pada root (atau `npm run start:backend`) untuk memulai servis. |
 
 ---
 
