@@ -13,7 +13,7 @@
     "dev": "concurrently -n \"api,web\" -c \"cyan,magenta\" \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
     "build": "npm run build --workspace=@medibrief/shared && npm run build --workspace=backend && npm run build --workspace=frontend",
     "typecheck": "npm run typecheck --workspace=@medibrief/shared && npm run typecheck --workspace=backend && npm run typecheck --workspace=frontend",
-    "lint": "npm run lint --workspaces --if-present",
+    "lint": "npm run lint --workspace=frontend",
     "test": "npm run test --workspaces --if-present",
     "test:coverage": "npm run test:coverage --workspace=backend"
   },

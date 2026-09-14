@@ -40,6 +40,14 @@ describe('Express API Endpoints', () => {
       expect(typeof res.body.uptimeSeconds).toBe('number');
       expect(res.headers['x-request-id']).toBeDefined();
     });
+
+    it('allows CORS from localhost frontend', async () => {
+      const res = await request(app)
+        .get('/health')
+        .set('Origin', 'http://localhost:3000');
+      expect(res.status).toBe(200);
+      expect(res.headers['access-control-allow-origin']).toBe('http://localhost:3000');
+    });
   });
 
   describe('GET /api/v1/providers', () => {

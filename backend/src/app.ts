@@ -27,13 +27,36 @@ export function createApp(options: AppOptions = {}): Express {
     })
   );
 
-  // CORS allowlist
-  const allowedOrigins = [env.WEB_ORIGIN, 'http://localhost:3000', 'http://127.0.0.1:3000'];
+  // CORS allowlist supporting multiple domains and wildcards (e.g. Vercel)
+  const configuredOrigins = env.WEB_ORIGIN
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const allowedOrigins = [...configuredOrigins];
+  if (!allowedOrigins.includes('http://localhost:3000')) {
+    allowedOrigins.push('http://localhost:3000');
+  }
+  if (!allowedOrigins.includes('http://127.0.0.1:3000')) {
+    allowedOrigins.push('http://127.0.0.1:3000');
+  }
+
+  const isOriginAllowed = (origin: string): boolean => {
+    return allowedOrigins.some((pattern) => {
+      if (pattern === '*' || pattern === origin) return true;
+      if (pattern.includes('*')) {
+        const regexStr = '^' + pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '.*') + '$';
+        return new RegExp(regexStr).test(origin);
+      }
+      return false;
+    });
+  };
+
   app.use(
     cors({
       origin: (origin, callback) => {
         // Allow requests with no origin (like mobile apps, curl, server-to-server)
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (!origin || isOriginAllowed(origin)) {
           callback(null, true);
         } else {
           callback(new Error(`CORS blocked for origin: ${origin}`));
