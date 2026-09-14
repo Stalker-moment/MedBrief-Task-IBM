@@ -1,5 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { ThemeProvider } from '@/components/ThemeProvider';
+
+const storageKey = "medibrief-theme";
+const themeScript = `(function(){try{var t=localStorage.getItem('${storageKey}');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light';}catch(e){var d=window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light';}})();`;
 
 export const metadata: Metadata = {
   title: 'MediBrief - Asisten Ringkasan Rekam Medis & Edukasi Pasien',
@@ -13,9 +17,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
-      <body className="min-h-screen flex flex-col bg-slate-50 text-slate-900 antialiased">
-        {children}
+    <html lang="id" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
+      <body className="min-h-screen flex flex-col text-slate-900 dark:text-slate-100 antialiased">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

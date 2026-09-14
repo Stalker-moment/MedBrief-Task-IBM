@@ -1,171 +1,33 @@
-'use client';
-
-import React, { useState, useRef } from 'react';
-import { RecordAnalyzeResponse } from '@medibrief/shared';
+import Link from 'next/link';
+import { ArrowUpRight, FileHeart, BookOpen, ScanLine, ShieldCheck } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
 import { WorkflowSection } from '@/components/WorkflowSection';
-import { MedicalRecordInput, AnalyzeFormValues } from '@/components/MedicalRecordInput';
-import { AnalysisResultView } from '@/components/AnalysisResultView';
 import { DisclaimerNotice } from '@/components/DisclaimerNotice';
-import { AlertCircle, RefreshCw, XCircle } from 'lucide-react';
+import { Reveal } from '@/components/Reveal';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
+const features = [
+  { icon: FileHeart, number: '01', title: 'Informasi penting, tersusun.', text: 'Keluhan, riwayat, obat, dan tindak lanjut dari catatan sumber dalam ringkasan klinis yang terstruktur.' },
+  { icon: BookOpen, number: '02', title: 'Bahasa yang lebih dekat.', text: 'Penjelasan ramah pasien dan pertanyaan untuk dibawa saat berkonsultasi dengan tenaga medis.' },
+  { icon: ScanLine, number: '03', title: 'Yang terlewat, terlihat.', text: 'Tinjau informasi yang belum dicatat, data yang bertentangan, dan hal yang perlu dikonfirmasi.' },
+];
 
 export default function HomePage() {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<{ message: string; code?: string } | null>(null);
-  const [result, setResult] = useState<RecordAnalyzeResponse | null>(null);
-  const [lastSubmittedValues, setLastSubmittedValues] = useState<AnalyzeFormValues | null>(null);
-
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  const handleCancel = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    setIsLoading(false);
-  };
-
-  const handleAnalyze = async (values: AnalyzeFormValues) => {
-    setIsLoading(true);
-    setError(null);
-    setLastSubmittedValues(values);
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/medical-records/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-        signal: controller.signal,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        const errorMsg =
-          data.error?.message ||
-          (data.error?.issues
-            ? data.error.issues.map((i: { message: string }) => i.message).join(', ')
-            : 'Gagal menganalisis catatan rekam medis.');
-
-        setError({
-          message: errorMsg,
-          code: data.error?.code || `HTTP_${response.status}`,
-        });
-        return;
-      }
-
-      setResult(data as RecordAnalyzeResponse);
-
-      // Smooth scroll down to results after processing
-      setTimeout(() => {
-        const resultSection = document.querySelector('section[aria-label="Hasil Analisis Rekam Medis"]');
-        if (resultSection) {
-          resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 200);
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        // Request was intentionally cancelled
-        return;
-      }
-
-      const errorMessage =
-        err instanceof Error ? err.message : 'Koneksi ke backend server gagal.';
-
-      setError({
-        message: `${errorMessage}. Pastikan Express API sedang berjalan di ${API_BASE_URL}.`,
-        code: 'NETWORK_ERROR',
-      });
-    } finally {
-      setIsLoading(false);
-      abortControllerRef.current = null;
-    }
-  };
-
-  const handleRetry = () => {
-    if (lastSubmittedValues) {
-      handleAnalyze(lastSubmittedValues);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8fafb]">
-      {/* Top Floating Pill Navigation */}
+    <div className="min-h-screen flex flex-col">
+      <a href="#main-content" className="skip-link">Langsung ke konten</a>
       <Header />
-
-      {/* Main Landing Page Experience */}
-      <HeroSection />
-
-      <WorkflowSection />
-
-      {/* Interactive Core Workspace Section */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-        {/* Medical Record Guided & Raw Input Component */}
-        <MedicalRecordInput
-          onSubmit={handleAnalyze}
-          isLoading={isLoading}
-          onCancel={handleCancel}
-        />
-
-        {/* Error Feedback with Retry Action */}
-        {error && (
-          <div
-            role="alert"
-            className="p-5 bg-rose-50 border border-rose-200 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-fade-in"
-          >
-            <div className="flex items-start gap-3.5">
-              <AlertCircle className="w-5 h-5 text-rose-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold text-rose-950">Gagal Memproses Permintaan</h3>
-                  {error.code && (
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-rose-200 text-rose-900 font-bold">
-                      {error.code}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs sm:text-sm text-rose-800 mt-1 leading-relaxed">{error.message}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 self-end sm:self-center">
-              <button
-                type="button"
-                onClick={() => setError(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 rounded-full"
-                title="Tutup Pesan Error"
-              >
-                <XCircle className="w-4 h-4" />
-              </button>
-              {lastSubmittedValues && (
-                <button
-                  type="button"
-                  onClick={handleRetry}
-                  disabled={isLoading}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-full transition shadow-sm"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Coba Lagi</span>
-                </button>
-              )}
-            </div>
+      <main id="main-content">
+        <HeroSection />
+        <Reveal><WorkflowSection /></Reveal>
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24" aria-labelledby="features-heading">
+          <Reveal><div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-10"><div><p className="eyebrow">SATU CATATAN, DUA SUDUT PANDANG</p><h2 id="features-heading" className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100 mt-4">Lebih mudah dibaca.<br /><span className="text-medisa-teal dark:text-teal-300">Lebih siap dipahami.</span></h2></div><p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">Dibuat untuk membantu dokumentasi dan percakapan antara tenaga medis dan pasien.</p></div></Reveal>
+          <div className="grid md:grid-cols-3 gap-5">
+            {features.map(({ icon: Icon, number, title, text }) => <Reveal key={number} className="h-full"><article className="feature-card h-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-7"><div className="flex items-center justify-between mb-10"><Icon className="w-6 h-6 text-medisa-teal dark:text-teal-300" /><span className="font-mono text-xs text-slate-400">/{number}</span></div><h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{title}</h3><p className="text-sm text-slate-500 dark:text-slate-400 mt-3 leading-relaxed">{text}</p></article></Reveal>)}
           </div>
-        )}
-
-        {/* Analysis Result Display */}
-        {result && <AnalysisResultView response={result} />}
+        </section>
+        <Reveal><section className="landing-cta mx-4 sm:mx-6 lg:mx-auto max-w-[1216px] rounded-3xl p-7 sm:p-12 flex flex-col md:flex-row justify-between gap-8 md:items-center"><div><p className="flex gap-2 items-center text-xs font-medium mb-4"><ShieldCheck className="w-4 h-4" /> Mulai dengan data sintetis</p><h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Dari sini, semuanya<br />jadi lebih jelas.</h2><p className="mt-4 text-sm opacity-80">Coba contoh yang tersedia, tanpa membuat akun.</p></div><Link href="/analisis" className="motion-button inline-flex items-center justify-center gap-5 rounded-full bg-white dark:bg-slate-900 text-teal-950 dark:text-teal-100 px-7 py-4 font-semibold self-start">Buka ruang analisis <ArrowUpRight className="w-5 h-5" /></Link></section></Reveal>
       </main>
-
-      {/* Safety & Legal Disclaimer Notice */}
       <DisclaimerNotice />
     </div>
   );

@@ -446,3 +446,10 @@ Prompt MediBrief dibangun menggunakan 8 lapisan modular yang terisolasi dan dapa
 ---
 
 *MediBrief Capstone Project — Dirancang dengan standar rekayasa perangkat lunak modern, keamanan data medis sintetis, dan ketahanan multi-provider AI.*
+
+### Halaman, tema, dan animasi
+
+- `/` merupakan landing page pengenalan MediBrief; semua tombol mulai mengarah ke `/analisis`.
+- `/analisis` memuat form dan hasil analisis, terpisah dari konten pengenalan.
+- Tombol tema di navigasi mengubah light/dark pada kedua halaman. Kunjungan pertama mengikuti tema perangkat. Hanya preferensi `medibrief-theme` yang disimpan di localStorage; catatan medis tetap tidak disimpan.
+- Animasi judul, kemunculan bagian saat scroll, dan hover menggunakan CSS serta IntersectionObserver. Pengaturan perangkat `prefers-reduced-motion` dihormati; konten tetap dapat dibaca tanpa animasi.

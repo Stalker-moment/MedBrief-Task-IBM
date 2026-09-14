@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   AudienceOption,
   LanguageOption,
@@ -25,8 +25,6 @@ import {
   Stethoscope,
   ChevronDown,
   ChevronUp,
-  HelpCircle,
-  Plus,
 } from 'lucide-react';
 
 export interface AnalyzeFormValues {
@@ -126,7 +124,7 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
     }
 
     // Allergies (Very important!)
-    const allergyVal = data.allergies.trim() || 'Tidak ada riwayat alergi yang dilaporkan';
+    const allergyVal = data.allergies.trim() || 'Tidak disebutkan';
     parts.push(`Riwayat Alergi: ${allergyVal}`);
 
     // Medications
@@ -163,8 +161,8 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
   const charCount = effectiveRecordText.length;
   const isGuidedEmpty = !guidedForm.chiefComplaint.trim() && guidedForm.symptomTags.length === 0;
   const isValidToSubmit = inputMode === 'guided'
-    ? !isGuidedEmpty && charCount >= 20
-    : charCount >= 20 && charCount <= 20000;
+    ? !isGuidedEmpty && charCount >= 20 && charCount <= 20000
+    : rawRecordText.trim().length >= 20 && charCount <= 20000;
 
   // Preset loaders for Guided Form
   const loadGuidedPreset = (presetType: 'ht-dm' | 'pediatric' | 'dyspepsia') => {
@@ -187,17 +185,17 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
     } else if (presetType === 'pediatric') {
       setGuidedForm({
         patientAge: '4 tahun',
-        patientGender: 'Laki-laki (An. Kevin)',
+        patientGender: 'Laki-laki',
         chiefComplaint: 'Demam dan diare cair 4-5 kali sehari sejak kemarin siang',
         duration: '1 hari, anak tampak rewel dan haus terus menerus',
         symptomTags: ['Demam / Panas', 'Diare / BAB Cair', 'Lemas / Cepat Lelah'],
         medicalHistory: 'Riwayat reaksi alergi anafilaktoid terhadap obat sulfonamida',
         currentMedications: 'Paracetamol sirup 120mg/5ml bila demam',
         allergies: 'Alergi sulfonamida / sulfa (kontradiksi triase)',
-        bloodPressure: 'Nadi 110x/m, RR 24x/m',
+        bloodPressure: '',
         bloodSugar: 'Tidak dilakukan tes gula',
         bodyTemp: '36.6 °C di klinik (sempat 39.2 °C di rumah)',
-        otherLabs: 'Turgor kulit kembali lambat 2 detik, bibir kering (dehidrasi ringan-sedang)',
+        otherLabs: 'Nadi 110x/m, RR 24x/m. Turgor kulit kembali lambat 2 detik, bibir kering (dehidrasi ringan-sedang)',
         doctorNotes: 'Berikan oralit tiap kali BAB cair dan sirup Zinc 20mg selama 10 hari.',
       });
     } else if (presetType === 'dyspepsia') {
@@ -265,43 +263,46 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
     <section
       id="workspace"
       aria-labelledby="input-heading"
-      className="w-full bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-8 scroll-mt-24 transition-all"
+      className="w-full bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 sm:p-8 scroll-mt-24 transition-all"
     >
       {/* Privacy Guard Notice */}
-      <div className="mb-6 p-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl flex items-start gap-3.5 text-xs text-emerald-950 shadow-xs">
-        <ShieldAlert className="w-5 h-5 flex-shrink-0 text-emerald-700 mt-0.5" aria-hidden="true" />
+      <div className="mb-6 p-4 bg-emerald-50/90 dark:bg-emerald-900/90 border border-emerald-200 dark:border-emerald-700 rounded-2xl flex items-start gap-3.5 text-xs text-emerald-950 dark:text-emerald-100 shadow-xs">
+        <ShieldAlert className="w-5 h-5 flex-shrink-0 text-emerald-700 dark:text-emerald-300 mt-0.5" aria-hidden="true" />
         <div>
-          <strong className="font-bold block text-emerald-950 mb-0.5">PERHATIAN KEAMANAN & PRIVASI DATA:</strong>
+          <strong className="font-bold block text-emerald-950 dark:text-emerald-100 mb-0.5">PERHATIAN KEAMANAN & PRIVASI DATA:</strong>
           Sistem ini hanya memproses <strong>data sintetis (fiktif)</strong> atau catatan yang telah di-anonimkan sepenuhnya. Jangan memasukkan identitas asli, NIK, alamat rumah, atau data rahasia riil.
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        <fieldset disabled={isLoading} className="min-w-0 space-y-6">
+        <legend className="sr-only">Catatan dan pengaturan analisis</legend>
         {/* Header & Mode Switcher Bar */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
           <div>
-            <div className="flex items-center gap-2">
-              <h2 id="input-heading" className="text-xl font-extrabold text-slate-900 tracking-tight">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 id="input-heading" className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
                 Pusat Analisis Rekam Medis
               </h2>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-medisa-mint text-medisa-dark font-bold">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-medisa-mint dark:bg-teal-950 text-medisa-dark dark:text-teal-200 font-bold">
                 Smart Input
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Pilih mode pengisian yang paling nyaman untuk Anda di bawah ini:
             </p>
           </div>
 
           {/* Mode Switcher Buttons */}
-          <div className="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200/80 gap-1 self-start sm:self-auto shadow-inner">
+          <div className="grid grid-cols-2 w-full lg:w-auto p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 gap-1 self-start sm:self-auto shadow-inner">
             <button
               type="button"
+              aria-pressed={inputMode === 'guided'}
               onClick={() => setInputMode('guided')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                 inputMode === 'guided'
-                  ? 'bg-white text-medisa-teal shadow-xs border border-slate-200'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-medisa-teal dark:text-teal-300 shadow-xs border border-slate-200 dark:border-slate-700'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
               <FormInput className="w-4 h-4" />
@@ -310,11 +311,12 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
 
             <button
               type="button"
+              aria-pressed={inputMode === 'raw'}
               onClick={() => setInputMode('raw')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                 inputMode === 'raw'
-                  ? 'bg-white text-medisa-teal shadow-xs border border-slate-200'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-medisa-teal dark:text-teal-300 shadow-xs border border-slate-200 dark:border-slate-700'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
               <FileText className="w-4 h-4" />
@@ -327,37 +329,37 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
         {inputMode === 'guided' && (
           <div className="space-y-6 animate-fade-in">
             {/* Quick Presets Bar */}
-            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-medisa-teal" />
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-medisa-teal dark:text-teal-300" />
                 <span>Isi Cepat Contoh Kasus:</span>
               </span>
               <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={() => loadGuidedPreset('ht-dm')}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-medisa-teal text-slate-700 hover:text-medisa-teal transition shadow-2xs"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-medisa-teal text-slate-700 dark:text-slate-300 hover:text-medisa-teal dark:hover:text-teal-300 transition shadow-2xs"
                 >
                   🩺 Tensi & Gula Darah
                 </button>
                 <button
                   type="button"
                   onClick={() => loadGuidedPreset('pediatric')}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-medisa-teal text-slate-700 hover:text-medisa-teal transition shadow-2xs"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-medisa-teal text-slate-700 dark:text-slate-300 hover:text-medisa-teal dark:hover:text-teal-300 transition shadow-2xs"
                 >
                   👶 Anak Demam & Diare
                 </button>
                 <button
                   type="button"
                   onClick={() => loadGuidedPreset('dyspepsia')}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-medisa-teal text-slate-700 hover:text-medisa-teal transition shadow-2xs"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-medisa-teal text-slate-700 dark:text-slate-300 hover:text-medisa-teal dark:hover:text-teal-300 transition shadow-2xs"
                 >
                   🍵 Sakit Maag / Lambung
                 </button>
                 <button
                   type="button"
                   onClick={handleClearAll}
-                  className="text-xs font-medium px-2.5 py-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition"
+                  className="text-xs font-medium px-2.5 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900 transition"
                   title="Kosongkan form"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -366,35 +368,35 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
             </div>
 
             {/* Step 1: Profil Pasien & Keluhan Utama */}
-            <div className="p-5 rounded-2xl border border-slate-200 bg-white space-y-4 shadow-2xs">
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
-                <HeartPulse className="w-4 h-4 text-medisa-teal" />
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 space-y-4 shadow-2xs">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-2">
+                <HeartPulse className="w-4 h-4 text-medisa-teal dark:text-teal-300" />
                 <span>1. Profil Pasien & Keluhan Utama</span>
-                <span className="text-xs text-rose-500 font-normal">*Wajib diisi</span>
+                <span className="text-xs text-rose-500 dark:text-rose-400 font-normal">*Wajib diisi</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="guided-patientAge" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Usia Pasien (Anonim)
                   </label>
-                  <input
+                  <input id="guided-patientAge"
                     type="text"
                     value={guidedForm.patientAge}
                     onChange={(e) => setGuidedForm({ ...guidedForm, patientAge: e.target.value })}
                     placeholder="Contoh: 58 tahun / 4 tahun"
-                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
+                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="guided-patientGender" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Jenis Kelamin
                   </label>
-                  <select
+                  <select id="guided-patientGender"
                     value={guidedForm.patientGender}
                     onChange={(e) => setGuidedForm({ ...guidedForm, patientGender: e.target.value })}
-                    className="w-full text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-medisa-teal bg-white"
+                    className="w-full text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-medisa-teal bg-white dark:bg-slate-900"
                   >
                     <option value="">Pilih Jenis Kelamin</option>
                     <option value="Laki-laki">Laki-laki</option>
@@ -403,35 +405,35 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="guided-duration" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Lama Keluhan Dirasakan
                   </label>
-                  <input
+                  <input id="guided-duration"
                     type="text"
                     value={guidedForm.duration}
                     onChange={(e) => setGuidedForm({ ...guidedForm, duration: e.target.value })}
                     placeholder="Contoh: 3 hari, memberat di pagi hari"
-                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
+                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label htmlFor="guided-chiefComplaint" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Apa Keluhan atau Gejala yang Paling Anda Rasakan?
                 </label>
-                <textarea
+                <textarea id="guided-chiefComplaint"
                   rows={2}
                   value={guidedForm.chiefComplaint}
                   onChange={(e) => setGuidedForm({ ...guidedForm, chiefComplaint: e.target.value })}
                   placeholder="Ceritakan dengan bahasa bebas sehari-hari. Contoh: Sakit kepala bagian belakang, leher terasa kaku dan badan meriang..."
-                  className="w-full text-xs sm:text-sm p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-medisa-teal leading-relaxed"
+                  className="w-full text-xs sm:text-sm p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-medisa-teal leading-relaxed"
                 />
               </div>
 
               {/* Quick Symptom Tags */}
               <div>
-                <span className="block text-xs font-medium text-slate-500 mb-2">
+                <span className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                   💡 Klik untuk menambahkan gejala umum secara instan:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
@@ -441,11 +443,12 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
                       <button
                         key={tag}
                         type="button"
+                        aria-pressed={isSelected}
                         onClick={() => toggleSymptomTag(tag)}
                         className={`text-[11px] px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
                           isSelected
                             ? 'bg-medisa-teal text-white border-medisa-teal font-bold shadow-2xs'
-                            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 font-medium'
+                            : 'bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 font-medium'
                         }`}
                       >
                         {isSelected ? '✓ ' : '+ '}
@@ -458,130 +461,135 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
             </div>
 
             {/* Step 2: Riwayat Penyakit, Obat, dan Alergi */}
-            <div className="p-5 rounded-2xl border border-slate-200 bg-white space-y-4 shadow-2xs">
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
-                <Pill className="w-4 h-4 text-purple-600" />
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 space-y-4 shadow-2xs">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-2">
+                <Pill className="w-4 h-4 text-purple-600 dark:text-purple-300" />
                 <span>2. Riwayat Kesehatan, Obat, & Alergi</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="guided-medicalHistory" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Riwayat Penyakit Terdahulu
                   </label>
-                  <input
+                  <input id="guided-medicalHistory"
                     type="text"
                     value={guidedForm.medicalHistory}
                     onChange={(e) => setGuidedForm({ ...guidedForm, medicalHistory: e.target.value })}
                     placeholder="Contoh: Darah tinggi 3 tahun, Diabetes 5 tahun, Asam lambung"
-                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
+                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="guided-currentMedications" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Obat yang Sedang Diminum
                   </label>
-                  <input
+                  <input id="guided-currentMedications"
                     type="text"
                     value={guidedForm.currentMedications}
                     onChange={(e) => setGuidedForm({ ...guidedForm, currentMedications: e.target.value })}
                     placeholder="Contoh: Amlodipine 10mg pagi, Metformin 500mg 2x1"
-                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
+                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
                   />
                 </div>
               </div>
 
               {/* Special Allergy Field */}
-              <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
-                <label className="flex items-center gap-1.5 text-xs font-bold text-amber-950 mb-1">
-                  <AlertOctagon className="w-4 h-4 text-amber-600" />
+              <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-900/70 border border-amber-200 dark:border-amber-700">
+                <label htmlFor="guided-allergies" className="flex items-center gap-1.5 text-xs font-bold text-amber-950 dark:text-amber-100 mb-1">
+                  <AlertOctagon className="w-4 h-4 text-amber-600 dark:text-amber-300" />
                   <span>Riwayat Alergi Obat / Makanan (Sangat Penting untuk Keselamatan):</span>
                 </label>
-                <input
+                <input id="guided-allergies"
                   type="text"
                   value={guidedForm.allergies}
                   onChange={(e) => setGuidedForm({ ...guidedForm, allergies: e.target.value })}
                   placeholder="Contoh: Alergi Amoxicillin (timbul ruam gatal), atau ketik 'Tidak ada alergi'"
-                  className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-lg border border-amber-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
             </div>
 
             {/* Step 3: Tanda Vital & Hasil Lab (Opsional) */}
-            <div className="p-5 rounded-2xl border border-slate-200 bg-white space-y-4 shadow-2xs">
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
-                <Stethoscope className="w-4 h-4 text-sky-600" />
+            <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 space-y-4 shadow-2xs">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-2">
+                <Stethoscope className="w-4 h-4 text-sky-600 dark:text-sky-300" />
                 <span>3. Tanda Vital & Hasil Lab Mandiri (Opsional)</span>
                 <span className="text-xs text-slate-400 font-normal">Boleh dikosongkan jika tidak ada</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="guided-bloodPressure" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Tekanan Darah (TD)
                   </label>
-                  <input
+                  <input id="guided-bloodPressure"
                     type="text"
                     value={guidedForm.bloodPressure}
                     onChange={(e) => setGuidedForm({ ...guidedForm, bloodPressure: e.target.value })}
                     placeholder="Contoh: 165/95 mmHg"
-                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
+                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="guided-bloodSugar" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Gula Darah (GDS / GDP)
                   </label>
-                  <input
+                  <input id="guided-bloodSugar"
                     type="text"
                     value={guidedForm.bloodSugar}
                     onChange={(e) => setGuidedForm({ ...guidedForm, bloodSugar: e.target.value })}
                     placeholder="Contoh: GDS 245 mg/dL"
-                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
+                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label htmlFor="guided-bodyTemp" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Suhu Tubuh
                   </label>
-                  <input
+                  <input id="guided-bodyTemp"
                     type="text"
                     value={guidedForm.bodyTemp}
                     onChange={(e) => setGuidedForm({ ...guidedForm, bodyTemp: e.target.value })}
                     placeholder="Contoh: 36.8 °C / 38.5 °C"
-                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
+                    className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Catatan Lab atau Anjuran Dokter Lainnya
+                <label htmlFor="guided-otherLabs" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Hasil Lab / Temuan Lainnya</label>
+                <textarea id="guided-otherLabs" rows={2} value={guidedForm.otherLabs} onChange={(e) => setGuidedForm({ ...guidedForm, otherLabs: e.target.value })} placeholder="Isi hasil pemeriksaan yang tercatat, jika ada" className="w-full text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-700" />
+              </div>
+              <div>
+                <label htmlFor="guided-doctorNotes" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Catatan atau Anjuran Dokter
                 </label>
-                <input
+                <input id="guided-doctorNotes"
                   type="text"
                   value={guidedForm.doctorNotes}
                   onChange={(e) => setGuidedForm({ ...guidedForm, doctorNotes: e.target.value })}
                   placeholder="Contoh: Dokter menganjurkan cek kolesterol dan kontrol ulang 2 minggu lagi"
-                  className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
+                  className="w-full text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-medisa-teal"
                 />
               </div>
             </div>
 
             {/* Live Assembly Preview Accordion */}
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 overflow-hidden">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/70 overflow-hidden">
               <button
                 type="button"
+                aria-expanded={showAssembledPreview}
                 onClick={() => setShowAssembledPreview(!showAssembledPreview)}
-                className="w-full px-4 py-3 flex items-center justify-between text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                className="w-full px-4 py-3 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 transition cursor-pointer"
               >
                 <div className="flex items-center gap-2">
-                  <FileCheck className="w-4 h-4 text-medisa-teal" />
+                  <FileCheck className="w-4 h-4 text-medisa-teal dark:text-teal-300" />
                   <span>Lihat Format Catatan Medis yang Disusun Otomatis</span>
-                  <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                     {charCount} karakter
                   </span>
                 </div>
@@ -589,7 +597,7 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
               </button>
 
               {showAssembledPreview && (
-                <div className="p-4 border-t border-slate-200 bg-slate-900 text-slate-200 font-mono text-xs leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
+                <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-900 text-slate-200 font-mono text-xs leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
                   {effectiveRecordText}
                 </div>
               )}
@@ -601,9 +609,9 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
         {inputMode === 'raw' && (
           <div className="space-y-4 animate-fade-in">
             {/* Quick Action Bar for Raw Mode */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
-              <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-medisa-teal" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <div className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-medisa-teal dark:text-teal-300" />
                 <span>Mode Catatan Medis Lengkap / Transkrip Rawat Jalan</span>
               </div>
 
@@ -613,7 +621,7 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
                   value={selectedSampleId}
                   onChange={(e) => handleLoadRawSample(e.target.value)}
                   disabled={isLoading}
-                  className="text-xs bg-white hover:bg-slate-50 text-slate-700 font-medium px-3 py-1.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-medisa-teal focus:outline-none transition cursor-pointer"
+                  className="text-xs bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 font-medium px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-medisa-teal focus:outline-none transition cursor-pointer"
                 >
                   <option value="" disabled>
                     💡 Muat Contoh Sintetis...
@@ -629,7 +637,7 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
                   type="button"
                   onClick={() => handleLoadRawSample()}
                   disabled={isLoading}
-                  className="text-xs inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 font-medium rounded-lg border border-teal-200 transition"
+                  className="text-xs inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-50 dark:bg-teal-900 hover:bg-teal-100 dark:hover:bg-teal-900 text-teal-800 dark:text-teal-100 font-medium rounded-lg border border-teal-200 dark:border-teal-700 transition"
                 >
                   <FileCheck className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Contoh Default</span>
@@ -637,9 +645,9 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
 
                 <button
                   type="button"
-                  onClick={() => setRawRecordText('')}
+                  onClick={() => { setRawRecordText(''); setSelectedSampleId(''); }}
                   disabled={isLoading || !rawRecordText}
-                  className="text-xs inline-flex items-center gap-1 px-2.5 py-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 font-medium rounded-lg border border-slate-200 transition disabled:opacity-40"
+                  className="text-xs inline-flex items-center gap-1 px-2.5 py-1.5 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900 font-medium rounded-lg border border-slate-200 dark:border-slate-700 transition disabled:opacity-40"
                 >
                   <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Kosongkan</span>
@@ -651,26 +659,27 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
               id="medical-note-input"
               aria-label="Isi Catatan Rekam Medis"
               value={rawRecordText}
-              onChange={(e) => setRawRecordText(e.target.value)}
+              onChange={(e) => { setRawRecordText(e.target.value); setSelectedSampleId(''); }}
+              aria-invalid={rawRecordText.length > 20000}
               disabled={isLoading}
               rows={11}
               placeholder="Tempelkan atau ketik catatan rekam medis lengkap di sini...&#10;&#10;Format yang didukung: Anamnesis keluhan, riwayat penyakit, pemeriksaan fisik, hasil lab, diagnosis dokter, dan rencana terapi."
-              className="w-full p-4 rounded-2xl border border-slate-300 font-mono text-xs sm:text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-medisa-teal bg-slate-50/40"
+              className="w-full p-4 rounded-2xl border border-slate-300 dark:border-slate-700 font-mono text-xs sm:text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-medisa-teal bg-slate-50/40 dark:bg-slate-900/40"
             />
 
-            <div className="flex items-center justify-between text-xs px-1 text-slate-500">
-              <span>{rawRecordText.length < 20 ? `Minimal 20 karakter (saat ini: ${rawRecordText.length})` : 'Panjang teks memenuhi syarat'}</span>
+            <div className="flex flex-wrap gap-2 items-center justify-between text-xs px-1 text-slate-500 dark:text-slate-400">
+              <span>{rawRecordText.length > 20000 ? 'Batas karakter terlampaui' : rawRecordText.trim().length < 20 ? `Minimal 20 karakter (saat ini: ${rawRecordText.length})` : 'Panjang teks memenuhi syarat'}</span>
               <span className="font-mono">{rawRecordText.length.toLocaleString('id-ID')} / 20.000 karakter</span>
             </div>
           </div>
         )}
 
         {/* -------------------- AI CONFIGURATION BAR -------------------- */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
           {/* Provider Selector */}
           <div>
-            <label htmlFor="provider-select" className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
-              <Cpu className="w-3.5 h-3.5 text-medisa-teal" aria-hidden="true" />
+            <label htmlFor="provider-select" className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              <Cpu className="w-3.5 h-3.5 text-medisa-teal dark:text-teal-300" aria-hidden="true" />
               <span>Model Kecerdasan Buatan (AI)</span>
             </label>
             <select
@@ -678,18 +687,18 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
               value={provider}
               onChange={(e) => setProvider(e.target.value as ProviderOption)}
               disabled={isLoading}
-              className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-medisa-teal font-medium"
+              className="w-full text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-medisa-teal font-medium"
             >
               <option value="gemini">Google Gemini (Default)</option>
-              <option value="deepseek">DeepSeek (OpenAI SDK)</option>
-              <option value="compare">Bandingkan Keduanya (Side-by-Side)</option>
+              <option value="deepseek">DeepSeek</option>
+              <option value="compare">Bandingkan Gemini & DeepSeek</option>
             </select>
           </div>
 
           {/* Audience Selector */}
           <div>
-            <label htmlFor="audience-select" className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
-              <Users className="w-3.5 h-3.5 text-medisa-teal" aria-hidden="true" />
+            <label htmlFor="audience-select" className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              <Users className="w-3.5 h-3.5 text-medisa-teal dark:text-teal-300" aria-hidden="true" />
               <span>Target Audiens Output</span>
             </label>
             <select
@@ -697,7 +706,7 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
               value={audience}
               onChange={(e) => setAudience(e.target.value as AudienceOption)}
               disabled={isLoading}
-              className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-medisa-teal font-medium"
+              className="w-full text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-medisa-teal font-medium"
             >
               <option value="both">Keduanya (Klinis & Pasien)</option>
               <option value="patient">Hanya Pasien (Bahasa Ramah Awam)</option>
@@ -707,8 +716,8 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
 
           {/* Language Selector */}
           <div>
-            <label htmlFor="language-select" className="flex items-center gap-1.5 text-xs font-bold text-slate-700 mb-1.5">
-              <Globe className="w-3.5 h-3.5 text-medisa-teal" aria-hidden="true" />
+            <label htmlFor="language-select" className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              <Globe className="w-3.5 h-3.5 text-medisa-teal dark:text-teal-300" aria-hidden="true" />
               <span>Bahasa Ringkasan</span>
             </label>
             <select
@@ -716,7 +725,7 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
               value={language}
               onChange={(e) => setLanguage(e.target.value as LanguageOption)}
               disabled={isLoading}
-              className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-medisa-teal font-medium"
+              className="w-full text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-medisa-teal font-medium"
             >
               <option value="id">Bahasa Indonesia (Utama)</option>
               <option value="en">English</option>
@@ -724,18 +733,20 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
           </div>
         </div>
 
+        </fieldset>
+        {charCount > 20000 && <p role="alert" className="text-sm text-rose-700 dark:text-rose-300">Catatan melebihi batas 20.000 karakter. Kurangi teks sebelum menganalisis.</p>}
         {/* -------------------- SUBMIT ACTIONS -------------------- */}
         <div className="flex items-center justify-between pt-2">
           <div className="text-xs text-slate-400 hidden sm:block">
             {inputMode === 'guided' ? '💡 Data akan dirangkum otomatis secara klinis' : '💡 Pastikan tidak ada data identitas asli (PII)'}
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto justify-end">
             {isLoading && (
               <button
                 type="button"
                 onClick={onCancel}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-full transition"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-900 hover:bg-rose-100 dark:hover:bg-rose-900 border border-rose-200 dark:border-rose-700 rounded-full transition"
               >
                 <XCircle className="w-4 h-4" aria-hidden="true" />
                 <span>Batalkan</span>
@@ -747,7 +758,7 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
               disabled={!isValidToSubmit || isLoading}
               className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full font-bold text-xs sm:text-sm text-white shadow-lg transition-all duration-300 ${
                 !isValidToSubmit || isLoading
-                  ? 'bg-slate-300 cursor-not-allowed shadow-none'
+                  ? 'bg-slate-300 dark:bg-slate-800 cursor-not-allowed shadow-none'
                   : 'bg-gradient-to-r from-medisa-teal via-teal-700 to-medisa-dark hover:scale-[1.02] shadow-medisa-teal/25 cursor-pointer'
               }`}
             >
