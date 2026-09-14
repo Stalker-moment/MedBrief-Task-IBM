@@ -1,0 +1,1 @@
+{"version":3,"file":"synthetic-samples.d.ts","sourceRoot":"","sources":["../../src/constants/synthetic-samples.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,MAAM,WAAW,eAAe;IAC9B,EAAE,EAAE,MAAM,CAAC;IACX,KAAK,EAAE,MAAM,CAAC;IACd,WAAW,EAAE,MAAM,CAAC;IACpB,UAAU,EAAE,MAAM,CAAC;CACpB;AAED,eAAO,MAAM,iBAAiB,EAAE,eAAe,EAwG9C,CAAC;AAEF,eAAO,MAAM,wBAAwB,QAAkC,CAAC"}
