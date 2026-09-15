@@ -9,6 +9,14 @@ export const metadata: Metadata = {
   title: 'MediBrief - Asisten Ringkasan Rekam Medis & Edukasi Pasien',
   description:
     'Asisten dokumentasi klinis berbasis AI untuk menyederhanakan dan menstrukturkan rekam medis sintetis dengan Google Gemini dan DeepSeek.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+    shortcut: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

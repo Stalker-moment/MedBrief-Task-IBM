@@ -294,33 +294,33 @@ export function MedicalRecordInput({ onSubmit, isLoading, onCancel }: MedicalRec
           </div>
 
           {/* Mode Switcher Buttons */}
-          <div className="grid grid-cols-2 w-full lg:w-auto p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 gap-1 self-start sm:self-auto shadow-inner">
+          <div className="grid grid-cols-2 w-full lg:w-auto p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 gap-1.5 self-start sm:self-auto shadow-inner">
             <button
               type="button"
               aria-pressed={inputMode === 'guided'}
               onClick={() => setInputMode('guided')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              className={`px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-center cursor-pointer border ${
                 inputMode === 'guided'
-                  ? 'bg-white dark:bg-slate-900 text-medisa-teal dark:text-teal-300 shadow-xs border border-slate-200 dark:border-slate-700'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'bg-white dark:bg-slate-800 text-medisa-teal dark:text-teal-300 shadow-xs border-slate-200/80 dark:border-slate-700'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-white/60 dark:hover:bg-slate-800/60 border-transparent'
               }`}
             >
-              <FormInput className="w-4 h-4" />
-              <span>Form Terpandu (Orang Awam)</span>
+              <FormInput className={`w-4 h-4 shrink-0 transition-colors ${inputMode === 'guided' ? 'text-medisa-teal dark:text-teal-300' : 'text-slate-400 dark:text-slate-500'}`} aria-hidden="true" />
+              <span className="leading-tight text-center sm:text-left">Form Terpandu (Orang Awam)</span>
             </button>
 
             <button
               type="button"
               aria-pressed={inputMode === 'raw'}
               onClick={() => setInputMode('raw')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              className={`px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 text-center cursor-pointer border ${
                 inputMode === 'raw'
-                  ? 'bg-white dark:bg-slate-900 text-medisa-teal dark:text-teal-300 shadow-xs border border-slate-200 dark:border-slate-700'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100'
+                  ? 'bg-white dark:bg-slate-800 text-medisa-teal dark:text-teal-300 shadow-xs border-slate-200/80 dark:border-slate-700'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-white/60 dark:hover:bg-slate-800/60 border-transparent'
               }`}
             >
-              <FileText className="w-4 h-4" />
-              <span>Catatan Bebas (Dokter / Nakes)</span>
+              <FileText className={`w-4 h-4 shrink-0 transition-colors ${inputMode === 'raw' ? 'text-medisa-teal dark:text-teal-300' : 'text-slate-400 dark:text-slate-500'}`} aria-hidden="true" />
+              <span className="leading-tight text-center sm:text-left">Catatan Bebas (Dokter / Nakes)</span>
             </button>
           </div>
         </div>

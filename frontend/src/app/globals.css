@@ -86,8 +86,6 @@ body {
 @media (max-width: 640px) {
   #workspace { padding: 1rem; }
   #workspace input, #workspace select, #workspace textarea { font-size: 16px; }
-  #workspace .flex.items-center { flex-wrap: wrap; }
-  #workspace .inline-flex { justify-content: center; }
   #workspace select { min-width: 0; }
   #workspace .self-start { align-self: stretch; }
   .analysis-result strong { overflow-wrap: anywhere; }

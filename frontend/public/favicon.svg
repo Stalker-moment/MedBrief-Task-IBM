@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- Rich Medical Gradient -->
+    <linearGradient id="mb-teal-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#149a97"/>
+      <stop offset="55%" stop-color="#0e7c7b"/>
+      <stop offset="100%" stop-color="#064441"/>
+    </linearGradient>
+
+    <!-- Deep Cut Pulse Gradient -->
+    <linearGradient id="mb-pulse-stroke" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0a5c57"/>
+      <stop offset="50%" stop-color="#064441"/>
+      <stop offset="100%" stop-color="#0a5c57"/>
+    </linearGradient>
+
+    <!-- Soft Drop Shadow for Depth -->
+    <filter id="mb-drop-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-opacity="0.2" flood-color="#000000"/>
+    </filter>
+  </defs>
+
+  <!-- Premium Squircle Container -->
+  <rect width="64" height="64" rx="16" fill="url(#mb-teal-bg)"/>
+
+  <!-- Medical Cross: Bold, Clean Healthcare Symbol -->
+  <g filter="url(#mb-drop-shadow)">
+    <!-- Vertical Bar -->
+    <rect x="25" y="11" width="14" height="42" rx="5" fill="#ffffff"/>
+    <!-- Horizontal Bar -->
+    <rect x="11" y="25" width="42" height="14" rx="5" fill="#ffffff"/>
+  </g>
+
+  <!-- ECG Heartbeat Rhythm carving the Letter 'M' (MediBrief + Vitality) -->
+  <path
+    d="M 14 32 L 22 32 L 27 18 L 32 44 L 37 18 L 42 32 L 48 32"
+    fill="none"
+    stroke="url(#mb-pulse-stroke)"
+    stroke-width="3.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Active AI Vital Indicator (Glowing Emerald/Mint Spark) -->
+  <circle cx="49" cy="32" r="2.2" fill="#2dd4bf"/>
+</svg>
