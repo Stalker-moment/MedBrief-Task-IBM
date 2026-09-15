@@ -36,6 +36,23 @@ export function AnalysisResultView({ response, language = 'id' }: AnalysisResult
   const [activeTab, setActiveTab] = useState<'patient' | 'clinical' | 'missing' | 'safety'>('patient');
   const [activeCompareIndex, setActiveCompareIndex] = useState<number>(() => Math.max(0, response.completedResults.findIndex(item => item.result)));
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
+  const [printDate, setPrintDate] = useState<string>('');
+
+  useEffect(() => {
+    try {
+      setPrintDate(
+        new Date().toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      );
+    } catch {
+      setPrintDate('15 September 2026');
+    }
+  }, []);
 
   const isCompareMode = response.requestedProvider === 'compare';
   const completedResults = response.completedResults;
@@ -249,10 +266,10 @@ ${currentResult.uncertainties.map((u) => `- ${u}`).join('\n') || '- Tidak ada'}
             onClick={handlePrint}
             disabled={!currentResult}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full transition shadow-2xs"
-            title="Cetak ringkasan"
+            title="Cetak atau Simpan sebagai Dokumen PDF (A4)"
           >
             <Printer className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden sm:inline">Cetak</span>
+            <span>Cetak PDF</span>
           </button>
 
           <button type="button" onClick={handleDownloadMarkdown} disabled={!currentResult} className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full hover:bg-slate-50 dark:hover:bg-slate-900"><Download className="w-3.5 h-3.5" />Unduh Markdown</button>
@@ -270,7 +287,191 @@ ${currentResult.uncertainties.map((u) => `- ${u}`).join('\n') || '- Tidak ada'}
 
       {actionError && <p role="alert" className="m-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900 text-sm text-amber-900 dark:text-amber-100">{actionError}</p>}
       <p role="status" className="sr-only">{copied ? 'Ringkasan berhasil disalin.' : ''}</p>
-      <pre className="print-report">{generateMarkdown()}</pre>
+
+      {/* Dokumen Laporan Medis Khusus Cetak / Simpan PDF (A4 Document Layout) */}
+      {currentResult && (
+        <article id="printable-medical-report" className="print-report-document" aria-label="Laporan Cetak Rekam Medis MediBrief">
+          {/* Header Kop Surat Medis */}
+          <div className="print-header-banner">
+            <div className="print-brand-block">
+              <div className="print-logo-title">
+                <span className="print-symbol">🩺</span>
+                <div>
+                  <h1 className="print-doc-title">MEDIBRIEF CLINICAL SUMMARY REPORT</h1>
+                  <p className="print-doc-subtitle">Sistem Dokumentasi Rekam Medis & Edukasi Pasien Terstruktur</p>
+                </div>
+              </div>
+              <p className="print-confidential-tag">DOKUMEN MEDIS SINTETIS / DE-IDENTIFIED — KONFIDENSIAL</p>
+            </div>
+            <div className="print-meta-table-wrapper">
+              <table className="print-meta-table">
+                <tbody>
+                  <tr>
+                    <th>No. Dokumen</th>
+                    <td>: {response.requestId.slice(0, 13).toUpperCase()}</td>
+                  </tr>
+                  <tr>
+                    <th>Waktu Cetak</th>
+                    <td>: {printDate || '15 September 2026'}</td>
+                  </tr>
+                  <tr>
+                    <th>Model AI</th>
+                    <td>: {currentResultItem?.provider.toUpperCase() ?? response.actualProvider.toUpperCase()} ({currentResultItem?.model ?? response.actualModel})</td>
+                  </tr>
+                  <tr>
+                    <th>Status Data</th>
+                    <td>: Tervalidasi Zod & Grounded</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Kotak Peringatan & Disclaimer Hukum Medis */}
+          <div className="print-disclaimer-card">
+            <div className="print-disclaimer-title">⚠️ PERINGATAN KESELAMATAN & BATASAN HUKUM MEDIS (BUKAN RESEP / PENGGANTI DOKTER):</div>
+            <div className="print-disclaimer-body">
+              {response.safetyDisclaimer || 'MediBrief adalah asisten dokumentasi rekam medis dan edukasi pasien, BUKAN alat diagnostik, BUKAN perencana tindakan medis, dan BUKAN pengganti dokter. Seluruh informasi klinis wajib dikonfirmasi langsung oleh dokter atau tenaga medis berwenang.'}
+            </div>
+          </div>
+
+          {/* BAGIAN I: RINGKASAN KLINIS DOKTER */}
+          <div className="print-section-block">
+            <div className="print-section-header">BAGIAN I. RINGKASAN KLINIS (CLINICAL SUMMARY)</div>
+            <table className="print-clinical-table">
+              <tbody>
+                <tr>
+                  <th className="print-col-label">Keluhan Utama</th>
+                  <td className="print-col-value">{currentResult.clinicalSummary.chiefComplaint || 'Tidak disebutkan'}</td>
+                </tr>
+                <tr>
+                  <th className="print-col-label">Riwayat Penyakit & Pengobatan</th>
+                  <td className="print-col-value">{currentResult.clinicalSummary.relevantHistory || 'Tidak disebutkan'}</td>
+                </tr>
+                <tr>
+                  <th className="print-col-label">Daftar Obat Tercatat</th>
+                  <td className="print-col-value">{currentResult.clinicalSummary.medications || 'Tidak disebutkan'}</td>
+                </tr>
+                <tr className={currentResult.clinicalSummary.allergies && !currentResult.clinicalSummary.allergies.toLowerCase().includes('tidak') ? 'print-allergy-alert' : ''}>
+                  <th className="print-col-label">Riwayat Alergi</th>
+                  <td className="print-col-value font-semibold">
+                    {currentResult.clinicalSummary.allergies || 'Tidak disebutkan'}
+                  </td>
+                </tr>
+                <tr>
+                  <th className="print-col-label">Pemeriksaan Fisik</th>
+                  <td className="print-col-value">{currentResult.clinicalSummary.examinationFindings || 'Tidak disebutkan'}</td>
+                </tr>
+                <tr>
+                  <th className="print-col-label">Hasil Lab / Penunjang</th>
+                  <td className="print-col-value">{currentResult.clinicalSummary.laboratoryFindings || 'Tidak disebutkan'}</td>
+                </tr>
+                <tr className="print-assessment-highlight">
+                  <th className="print-col-label">Kesimpulan / Asesmen Sumber</th>
+                  <td className="print-col-value font-bold">{currentResult.clinicalSummary.assessmentFromSource || 'Tidak disebutkan'}</td>
+                </tr>
+                <tr>
+                  <th className="print-col-label">Rencana & Tindak Lanjut</th>
+                  <td className="print-col-value">
+                    {currentResult.clinicalSummary.planFromSource || 'Tidak disebutkan'}
+                    {currentResult.clinicalSummary.followUpFromSource ? ` — Kontrol: ${currentResult.clinicalSummary.followUpFromSource}` : ''}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* BAGIAN II: PANDUAN EDUKASI PASIEN */}
+          <div className="print-section-block print-avoid-break">
+            <div className="print-section-header">BAGIAN II. PANDUAN EDUKASI PASIEN (PATIENT EDUCATION)</div>
+            <div className="print-education-grid">
+              <div className="print-edu-item">
+                <div className="print-edu-title">Ringkasan Kondisi untuk Pasien:</div>
+                <p className="print-edu-desc">{currentResult.patientExplanation.overview || 'Tidak disebutkan'}</p>
+              </div>
+              <div className="print-edu-item">
+                <div className="print-edu-title">Panduan Konsumsi Obat Tercatat:</div>
+                <p className="print-edu-desc">{currentResult.patientExplanation.medicinesMentioned || 'Tidak disebutkan'}</p>
+              </div>
+              <div className="print-edu-item">
+                <div className="print-edu-title">Langkah Pasien Selanjutnya:</div>
+                <p className="print-edu-desc">{currentResult.patientExplanation.followUp || 'Tidak disebutkan'}</p>
+              </div>
+              {currentResult.patientExplanation.questionsForHealthcareProfessional?.length > 0 && (
+                <div className="print-edu-item print-full-width">
+                  <div className="print-edu-title">Daftar Pertanyaan Penting untuk Dokter Saat Kontrol:</div>
+                  <ol className="print-question-list">
+                    {currentResult.patientExplanation.questionsForHealthcareProfessional.map((q, i) => (
+                      <li key={i}>{q}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* BAGIAN III: KEAMANAN & KELENGKAPAN REKAM MEDIS */}
+          <div className="print-section-block print-avoid-break">
+            <div className="print-section-header">BAGIAN III. CATATAN KEAMANAN & KELENGKAPAN DATA</div>
+            <div className="print-notes-container">
+              {currentResult.safetyNotes?.length > 0 && (
+                <div className="print-note-row print-note-warning">
+                  <strong>Peringatan Keselamatan:</strong>
+                  <ul>
+                    {currentResult.safetyNotes.map((n, i) => <li key={i}>{n}</li>)}
+                  </ul>
+                </div>
+              )}
+              {currentResult.missingInformation?.length > 0 && (
+                <div className="print-note-row">
+                  <strong>Data Tidak Disebutkan di Rekam Medis:</strong>
+                  <ul>
+                    {currentResult.missingInformation.map((m, i) => <li key={i}>{m}</li>)}
+                  </ul>
+                </div>
+              )}
+              {currentResult.conflictingInformation?.length > 0 && (
+                <div className="print-note-row print-note-conflict">
+                  <strong>Kontradiksi / Data Berlawanan:</strong>
+                  <ul>
+                    {currentResult.conflictingInformation.map((c, i) => <li key={i}>{c}</li>)}
+                  </ul>
+                </div>
+              )}
+              {currentResult.uncertainties?.length > 0 && (
+                <div className="print-note-row">
+                  <strong>Ketidakpastian yang Wajib Dikonfirmasi:</strong>
+                  <ul>
+                    {currentResult.uncertainties.map((u, i) => <li key={i}>{u}</li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Area Tanda Tangan & Verifikasi Dokter */}
+          <div className="print-verification-area print-avoid-break">
+            <div className="print-verif-col print-verif-notes">
+              <div className="print-verif-label">Catatan Tambahan / Paraf Perawat:</div>
+              <div className="print-dotted-line"></div>
+              <div className="print-dotted-line"></div>
+            </div>
+            <div className="print-verif-col print-verif-sign">
+              <div className="print-verif-label">Ditinjau & Diverifikasi Oleh Dokter Pemeriksa:</div>
+              <div className="print-sign-box"></div>
+              <div className="print-sign-name">( __________________________________________ )</div>
+              <div className="print-sign-sub">SIP / NIP: _________________________________</div>
+              <div className="print-sign-sub">Tanggal: _____ / _____ / 20___</div>
+            </div>
+          </div>
+
+          {/* Footer Dokumen Cetak */}
+          <div className="print-doc-footer">
+            <span>MediBrief AI Healthcare Assistant — Dokumen Rekam Medis De-identified</span>
+            <span>Request ID: {response.requestId}</span>
+          </div>
+        </article>
+      )}
 
       {/* Fallback Notice Banner if applied */}
       {response.fallbackApplied && response.fallbackReason && (
